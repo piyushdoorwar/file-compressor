@@ -94,7 +94,7 @@
   }
 
   function getRelativeName(file) {
-    return (file.webkitRelativePath || file.name).replace(/\\/g, '/');
+    return (file.__relativePath || file.webkitRelativePath || file.name).replace(/\\/g, '/');
   }
 
   function fileIdentity(file) {
@@ -483,6 +483,34 @@
     renderFileTable();
   }
 
+  async function collectDirectoryFiles(directoryHandle, prefix) {
+    const files = [];
+    for await (const entry of directoryHandle.values()) {
+      const relativePath = prefix ? prefix + '/' + entry.name : entry.name;
+      if (entry.kind === 'file') {
+        const file = await entry.getFile();
+        file.__relativePath = relativePath;
+        files.push(file);
+      } else if (entry.kind === 'directory') {
+        files.push(...await collectDirectoryFiles(entry, relativePath));
+      }
+    }
+    return files;
+  }
+
+  function configureFolderInput() {
+    if (!el.folderInput) return;
+    el.folderInput.setAttribute('webkitdirectory', '');
+    el.folderInput.setAttribute('directory', '');
+    el.folderInput.setAttribute('mozdirectory', '');
+    el.folderInput.multiple = true;
+    try {
+      el.folderInput.webkitdirectory = true;
+    } catch (error) {
+      // Ignore non-standard property assignment failures.
+    }
+  }
+
   function clearQueue() {
     if (state.isCompressing) return;
     state.files = [];
@@ -695,8 +723,20 @@
       event.stopPropagation();
       el.fileInput.click();
     });
-    el.browseFolderBtn.addEventListener('click', (event) => {
+    el.browseFolderBtn.addEventListener('click', async (event) => {
       event.stopPropagation();
+      if (typeof window.showDirectoryPicker === 'function') {
+        try {
+          const directoryHandle = await window.showDirectoryPicker({ mode: 'read' });
+          const files = await collectDirectoryFiles(directoryHandle, '');
+          if (files.length) addFiles(files);
+          return;
+        } catch (error) {
+          if (error && error.name === 'AbortError') return;
+          console.warn('Directory picker failed, falling back to file input.', error);
+        }
+      }
+      configureFolderInput();
       el.folderInput.click();
     });
     el.clearBtn.addEventListener('click', clearQueue);
@@ -736,6 +776,7 @@
   }
 
   function init() {
+    configureFolderInput();
     bindEvents();
     setPreset('balanced');
     showProgressState('idle');
