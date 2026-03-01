@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FilePress — Local File Compressor</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <svg class="logo-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="url(#logoGrad)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <defs>
+            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#3b82f6"/>
+              <stop offset="100%" stop-color="#a855f7"/>
+            </linearGradient>
+          </defs>
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="9" y1="13" x2="15" y2="13"/>
+          <line x1="9" y1="17" x2="13" y2="17"/>
+        </svg>
+        <h1 class="logo-text">FilePress</h1>
+      </div>
+      <p class="tagline">Compress files locally in your browser — nothing ever leaves your machine.</p>
+    </header>
+
+    <main class="main">
+
+      <!-- Step 1 : Upload -->
+      <section id="upload-section" class="section">
+        <h2 class="section-title"><span class="step-num">1</span> Select a File</h2>
+        <div class="drop-zone" id="dropZone">
+          <div class="drop-content" id="dropContent">
+            <svg class="upload-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <p class="drop-text">Drag &amp; drop a file here</p>
+            <span class="drop-divider">— or —</span>
+            <button class="browse-btn" id="browseBtn" type="button">Browse Files</button>
+          </div>
+          <input type="file" id="fileInput" hidden>
+        </div>
+      </section>
+
+      <!-- Step 2 : Compression Mode -->
+      <section id="settings-section" class="section hidden">
+        <h2 class="section-title"><span class="step-num">2</span> Compression Mode</h2>
+        <div class="mode-cards">
+          <button class="mode-card" data-mode="fastest" type="button">
+            <span class="mode-emoji">⚡</span>
+            <h3 class="mode-name">Speed</h3>
+            <p class="mode-desc">No compression — instant ZIP packaging. Best for already-compressed files.</p>
+            <span class="mode-tag">Store</span>
+          </button>
+          <button class="mode-card active" data-mode="balanced" type="button">
+            <span class="mode-emoji">⚖️</span>
+            <h3 class="mode-name">Balanced</h3>
+            <p class="mode-desc">DEFLATE compression — great balance of speed and file-size reduction.</p>
+            <span class="mode-tag">Deflate</span>
+          </button>
+          <button class="mode-card" data-mode="maximum" type="button">
+            <span class="mode-emoji">🔥</span>
+            <h3 class="mode-name">Maximum</h3>
+            <p class="mode-desc">Best compression ratio with deep analysis. Takes a little longer.</p>
+            <span class="mode-tag">Deflate+</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Step 3 : Analysis -->
+      <section id="analysis-section" class="section hidden">
+        <h2 class="section-title"><span class="step-num">3</span> File Analysis</h2>
+        <div class="analysis-grid">
+          <div class="analysis-card">
+            <h3 class="card-heading">Original File</h3>
+            <div class="detail-row">
+              <span class="detail-label">Name</span>
+              <span class="detail-value truncate" id="fileName">—</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Type</span>
+              <span class="detail-value" id="fileType">—</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Size</span>
+              <span class="detail-value size-original" id="fileSize">—</span>
+            </div>
+          </div>
+          <div class="analysis-card projected">
+            <h3 class="card-heading">Projected Result</h3>
+            <div class="detail-row">
+              <span class="detail-label">Est. Size</span>
+              <span class="detail-value size-projected" id="projectedSize">—</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Savings</span>
+              <span class="detail-value" id="projectedSavings">—</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Ratio</span>
+              <span class="detail-value" id="projectedRatio">—</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Action -->
+      <section id="action-section" class="section hidden">
+        <button class="compress-btn" id="compressBtn" type="button">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Start Compression
+        </button>
+      </section>
+
+      <!-- Progress / Queue -->
+      <section id="progress-section" class="section hidden">
+        <h2 class="section-title">Compression Queue</h2>
+        <div class="queue-card">
+          <div class="queue-header">
+            <span class="queue-file-icon">📄</span>
+            <span class="queue-file-name" id="queueFileName">file.txt</span>
+          </div>
+
+          <div class="queue-steps">
+            <div class="q-step" id="stepAnalyze">
+              <span class="q-step-icon" id="stepAnalyzeIcon">○</span>
+              <span>Analyze</span>
+            </div>
+            <div class="q-step-line"></div>
+            <div class="q-step" id="stepCompress">
+              <span class="q-step-icon" id="stepCompressIcon">○</span>
+              <span>Compress</span>
+            </div>
+            <div class="q-step-line"></div>
+            <div class="q-step" id="stepPackage">
+              <span class="q-step-icon" id="stepPackageIcon">○</span>
+              <span>Package</span>
+            </div>
+          </div>
+
+          <div class="progress-bar-container">
+            <div class="progress-bar">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <span class="progress-pct" id="progressText">0%</span>
+          </div>
+          <p class="progress-status" id="progressStatus">Waiting…</p>
+        </div>
+      </section>
+
+      <!-- Complete -->
+      <section id="complete-section" class="section hidden">
+        <div class="complete-card">
+          <div class="complete-check">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <h2 class="complete-heading">Compression Complete!</h2>
+
+          <div class="result-stats">
+            <div class="stat">
+              <span class="stat-label">Original</span>
+              <span class="stat-value" id="resultOriginal">—</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Compressed</span>
+              <span class="stat-value" id="resultCompressed">—</span>
+            </div>
+            <div class="stat highlight-stat">
+              <span class="stat-label">Saved</span>
+              <span class="stat-value" id="resultSaved">—</span>
+            </div>
+          </div>
+
+          <button class="download-btn" id="downloadBtn" type="button">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download ZIP
+          </button>
+          <button class="reset-btn" id="resetBtn" type="button">Compress Another File</button>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="footer">
+      <p>🔒 100 % client-side — your files never leave your browser. Powered by the DEFLATE algorithm.</p>
+    </footer>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
