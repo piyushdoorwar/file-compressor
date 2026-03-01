@@ -3,13 +3,13 @@
 :root {
   color-scheme: dark;
   --bg: #0d0d0d;
-  --bg-secondary: #141414;
-  --panel-bg: rgba(30, 30, 30, 0.9);
-  --panel-bg-elevated: rgba(37, 37, 37, 0.95);
-  --surface-soft: rgba(255, 255, 255, 0.03);
-  --surface-strong: rgba(255, 255, 255, 0.06);
+  --bg-secondary: #1a1a1a;
+  --panel-bg: #1e1e1e;
+  --panel-bg-elevated: #252525;
+  --surface-soft: rgba(255, 255, 255, 0.02);
+  --surface-strong: rgba(255, 255, 255, 0.04);
   --border: rgba(255, 255, 255, 0.06);
-  --border-light: rgba(255, 255, 255, 0.12);
+  --border-light: rgba(255, 255, 255, 0.1);
   --accent-purple: #6739b7;
   --accent-purple-light: #8b5cf6;
   --accent-purple-dark: #5b21b6;
@@ -45,10 +45,7 @@ body {
   min-height: 100vh;
   font-family: 'Inter', system-ui, sans-serif;
   color: var(--text);
-  background:
-    radial-gradient(circle at 18% 14%, rgba(103, 57, 183, 0.08), transparent 26%),
-    radial-gradient(circle at 84% 10%, rgba(255, 215, 0, 0.04), transparent 22%),
-    linear-gradient(180deg, #070707 0%, #0a0a0a 55%, #0b0b0b 100%);
+  background: var(--bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
@@ -58,14 +55,18 @@ body {
 body::before {
   content: '';
   position: fixed;
-  inset: -35%;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
   background:
-    radial-gradient(circle at 25% 40%, rgba(103, 57, 183, 0.08), transparent 22%),
-    radial-gradient(circle at 78% 25%, rgba(255, 215, 0, 0.03), transparent 16%);
-  animation: gradientShift 18s ease-in-out infinite;
+    radial-gradient(circle at 20% 50%, rgba(103, 57, 183, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 215, 0, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 40% 90%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+  animation: gradientShift 20s ease infinite;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.7;
+  opacity: 0.9;
 }
 
 button,
@@ -114,10 +115,8 @@ button {
   min-height: 100vh;
   margin: 0;
   padding: 1.35rem clamp(1rem, 2.2vw, 2rem) 1.2rem;
-  background:
-    radial-gradient(circle at 18% 12%, rgba(103, 57, 183, 0.05), transparent 22%),
-    radial-gradient(circle at 86% 10%, rgba(255, 215, 0, 0.025), transparent 18%),
-    linear-gradient(180deg, rgba(20, 20, 20, 0.97), rgba(10, 10, 10, 0.98));
+  background: rgba(26, 26, 26, 0.72);
+  backdrop-filter: blur(12px);
 }
 
 .app-header {
@@ -193,11 +192,10 @@ button {
   align-items: center;
   gap: 0.75rem;
   padding: 0.82rem 0.95rem;
-  background:
-    linear-gradient(180deg, rgba(32, 32, 32, 0.94), rgba(20, 20, 20, 0.94));
+  background: var(--panel-bg);
   border: 1px solid var(--border);
   border-radius: 24px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+  box-shadow: var(--shadow-md);
 }
 
 .toolbar-group {
@@ -209,6 +207,23 @@ button {
 
 .toolbar-group-grow {
   flex: 1;
+}
+
+.toolbar-spacer {
+  flex: 1;
+  min-width: 0;
+}
+
+.toolbar-cluster {
+  gap: 0.3rem;
+  padding: 0.34rem 0.42rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.toolbar-cluster .toolbar-label {
+  margin-right: 0.2rem;
 }
 
 .toolbar-label {
@@ -258,6 +273,19 @@ button {
   color: var(--text);
   font-size: 0.76rem;
   font-weight: 600;
+}
+
+.toolbar-cluster .toolbar-action {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.toolbar-cluster .toolbar-action:hover,
+.toolbar-cluster .toolbar-action:focus-visible {
+  border-color: transparent;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
 }
 
 .toolbar-action:hover,
@@ -316,7 +344,7 @@ button {
   padding: 0;
   border-radius: 999px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.22);
   color: var(--text-secondary);
   box-shadow: var(--shadow-sm);
 }
@@ -337,10 +365,18 @@ button {
   display: inline-flex;
   gap: 0.3rem;
   padding: 0.38rem;
-  border-radius: 999px;
-  background: rgba(12, 12, 12, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+
+.toolbar-cluster .mode-switch {
+  gap: 0.22rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
 }
 
 .mode-pill {
@@ -432,7 +468,7 @@ button {
   padding: 0.68rem 0.9rem;
   border: 1px solid var(--border);
   border-radius: 1rem;
-  background: rgba(10, 10, 10, 0.96);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--text);
   font-size: 0.84rem;
   font-weight: 700;
@@ -481,10 +517,8 @@ button {
   gap: 0.18rem;
   border-radius: 1.15rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: #0a0a0a;
-  box-shadow:
-    0 18px 36px rgba(0, 0, 0, 0.42),
-    0 0 18px rgba(103, 57, 183, 0.1);
+  background: var(--panel-bg-elevated);
+  box-shadow: var(--shadow-md);
   overflow-y: auto;
   z-index: 20;
   isolation: isolate;
@@ -546,8 +580,8 @@ button {
   min-height: 0;
   border-radius: 30px;
   border: 1px solid var(--border);
-  background: linear-gradient(180deg, rgba(29, 29, 29, 0.97), rgba(17, 17, 17, 0.97));
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.26);
+  background: var(--panel-bg);
+  box-shadow: var(--shadow-md);
   overflow: hidden;
 }
 
@@ -556,7 +590,7 @@ button {
   position: absolute;
   inset: 0 0 auto;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.07), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
 }
 
 .control-panel,
@@ -595,7 +629,7 @@ button {
   position: relative;
   border-radius: 24px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.015);
+  background: rgba(0, 0, 0, 0.18);
 }
 
 .drop-card {
@@ -686,14 +720,12 @@ button {
   padding: 0.85rem 0.9rem 0.9rem;
   border-radius: 18px;
   border: 1px solid var(--border);
-  background: var(--surface-soft);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .metric-card-accent {
-  background:
-    linear-gradient(135deg, rgba(103, 57, 183, 0.14), rgba(255, 215, 0, 0.08)),
-    var(--surface-soft);
-  border-color: rgba(139, 92, 246, 0.16);
+  background: rgba(37, 37, 37, 0.55);
+  border-color: var(--border);
 }
 
 .metric-label {
@@ -1212,6 +1244,10 @@ button {
   }
 
   .toolbar-divider {
+    display: none;
+  }
+
+  .toolbar-spacer {
     display: none;
   }
 

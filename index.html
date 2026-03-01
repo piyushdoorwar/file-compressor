@@ -28,7 +28,7 @@
     </header>
 
     <section class="toolbar" aria-label="Queue controls">
-      <div class="toolbar-group">
+      <div class="toolbar-group toolbar-cluster">
         <span class="toolbar-label">File</span>
         <button class="toolbar-action icon-only" id="browseBtn" type="button" aria-label="Browse files" data-tooltip="Browse Files">
           <svg class="ui-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -60,7 +60,7 @@
 
       <div class="toolbar-divider" aria-hidden="true"></div>
 
-      <div class="toolbar-group toolbar-group-grow">
+      <div class="toolbar-group toolbar-cluster toolbar-cluster-mode">
         <span class="toolbar-label">Mode</span>
         <div class="mode-switch" role="tablist" aria-label="Compression presets">
           <button class="mode-pill preset-btn icon-only" data-mode="fastest" type="button" aria-label="Fastest" data-tooltip="Fastest">
@@ -90,6 +90,8 @@
           </button>
         </div>
       </div>
+
+      <div class="toolbar-spacer" aria-hidden="true"></div>
 
       <div class="toolbar-group">
         <span class="toolbar-label" id="algorithmLabel">Algo</span>
