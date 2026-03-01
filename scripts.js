@@ -333,6 +333,21 @@
     return (name.split('.').pop() || '?').toUpperCase().slice(0, 4);
   }
 
+  function pathMarkup(path) {
+    const parts = path.split('/').filter(Boolean);
+    const fileName = parts.pop() || path;
+    const folderPath = parts.join(' / ');
+    if (!folderPath) {
+      return `<span class="file-name-text" title="${escapeHTML(fileName)}">${escapeHTML(fileName)}</span>`;
+    }
+    return `
+      <div class="file-path-stack" title="${escapeHTML(path)}">
+        <span class="file-folder-path">${escapeHTML(folderPath)}</span>
+        <span class="file-name-text">${escapeHTML(fileName)}</span>
+      </div>
+    `;
+  }
+
   function getOutputName() {
     const base = state.files.length === 1 ? state.files[0].file.name.replace(/\.[^/.]+$/, '') : 'archive';
     return base + ALGO[state.algorithm].ext;
@@ -375,7 +390,7 @@
       const row = document.createElement('tr');
       const name = getRelativeName(entry.file);
       row.innerHTML = `
-        <td><div class="file-path-cell"><div class="file-ext-icon ${extClass(entry.file.name)}">${escapeHTML(extLabel(entry.file.name))}</div><span class="file-name-text" title="${escapeHTML(name)}">${escapeHTML(name)}</span></div></td>
+        <td><div class="file-path-cell"><div class="file-ext-icon ${extClass(entry.file.name)}">${escapeHTML(extLabel(entry.file.name))}</div>${pathMarkup(name)}</div></td>
         <td class="file-size-cell">${formatSize(entry.file.size)}</td>
         <td><button class="remove-btn" data-id="${entry.id}" type="button" aria-label="Remove file" title="Remove file"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16"></path><path d="M10 11v5"></path><path d="M14 11v5"></path><path d="M6 7l1 11a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-11"></path><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"></path></svg><span class="sr-only">Remove</span></button></td>
       `;
