@@ -40,28 +40,27 @@
     <path d="M20 11h24l3 5v33c0 2.2-1.8 4-4 4H21c-2.2 0-4-1.8-4-4V16z" fill="url(#shell)" stroke="#ffffff" stroke-opacity="0.08"/>
 
     <g>
-      <path d="M21 16h10v34H21z" fill="url(#panel)">
-        <animateTransform attributeName="transform" type="translate" values="0 0;-1.7 -0.55;-1.7 -0.55;0 0" keyTimes="0;0.42;0.58;1" dur="2.6s" calcMode="spline" keySplines="0.35 0 0.25 1;0 0 1 1;0.45 0 0.25 1" repeatCount="indefinite"/>
+      <path d="M21 16H31V50H21Z" fill="url(#panel)">
+        <animate attributeName="d" values="M21 16H31V50H21Z;M18.8 14.8L30.3 16.3L29 50H22.2Z;M18.8 14.8L30.3 16.3L29 50H22.2Z;M21 16H31V50H21Z" keyTimes="0;0.42;0.58;1" dur="2.6s" calcMode="spline" keySplines="0.35 0 0.25 1;0 0 1 1;0.45 0 0.25 1" repeatCount="indefinite"/>
       </path>
-      <path d="M33 16h10v34H33z" fill="#5b21b6">
-        <animateTransform attributeName="transform" type="translate" values="0 0;1.7 -0.55;1.7 -0.55;0 0" keyTimes="0;0.42;0.58;1" dur="2.6s" calcMode="spline" keySplines="0.35 0 0.25 1;0 0 1 1;0.45 0 0.25 1" repeatCount="indefinite"/>
+      <path d="M33 16H43V50H33Z" fill="#5b21b6">
+        <animate attributeName="d" values="M33 16H43V50H33Z;M33.7 16.3L45.2 14.8L41.8 50H35Z;M33.7 16.3L45.2 14.8L41.8 50H35Z;M33 16H43V50H33Z" keyTimes="0;0.42;0.58;1" dur="2.6s" calcMode="spline" keySplines="0.35 0 0.25 1;0 0 1 1;0.45 0 0.25 1" repeatCount="indefinite"/>
       </path>
     </g>
 
     <g>
-      <path d="M21 11h10l1.2 5H21z" fill="#9a73fb">
-        <animateTransform attributeName="transform" type="translate" values="0 0;-1.7 -0.9;-1.7 -0.9;0 0" keyTimes="0;0.42;0.58;1" dur="2.6s" calcMode="spline" keySplines="0.35 0 0.25 1;0 0 1 1;0.45 0 0.25 1" repeatCount="indefinite"/>
+      <path d="M21 11H31L32.2 16H21Z" fill="#9a73fb">
+        <animate attributeName="d" values="M21 11H31L32.2 16H21Z;M18.6 9.7H29.7L30.8 15.9H20.1Z;M18.6 9.7H29.7L30.8 15.9H20.1Z;M21 11H31L32.2 16H21Z" keyTimes="0;0.42;0.58;1" dur="2.6s" calcMode="spline" keySplines="0.35 0 0.25 1;0 0 1 1;0.45 0 0.25 1" repeatCount="indefinite"/>
       </path>
-      <path d="M33 11h10l-1.2 5H33z" fill="#7542d8">
-        <animateTransform attributeName="transform" type="translate" values="0 0;1.7 -0.9;1.7 -0.9;0 0" keyTimes="0;0.42;0.58;1" dur="2.6s" calcMode="spline" keySplines="0.35 0 0.25 1;0 0 1 1;0.45 0 0.25 1" repeatCount="indefinite"/>
+      <path d="M33 11H43L41.8 16H33Z" fill="#7542d8">
+        <animate attributeName="d" values="M33 11H43L41.8 16H33Z;M34.3 15.9H44.9L45.4 9.7H34.3Z;M34.3 15.9H44.9L45.4 9.7H34.3Z;M33 11H43L41.8 16H33Z" keyTimes="0;0.42;0.58;1" dur="2.6s" calcMode="spline" keySplines="0.35 0 0.25 1;0 0 1 1;0.45 0 0.25 1" repeatCount="indefinite"/>
       </path>
     </g>
 
     <rect x="30.25" y="14" width="3.5" height="29" rx="1.75" fill="url(#zip)"/>
     <g>
-      <rect x="29.3" y="42" width="5.4" height="6.6" rx="2.7" fill="#ffd700"/>
-      <rect x="30.45" y="44" width="3.1" height="1.9" rx="0.95" fill="#0d0d0d"/>
-      <animateTransform attributeName="transform" type="translate" values="0 0;0 -10.5;0 -10.5;0 0" keyTimes="0;0.42;0.58;1" dur="2.6s" calcMode="spline" keySplines="0.35 0 0.25 1;0 0 1 1;0.45 0 0.25 1" repeatCount="indefinite"/>
+      <rect x="29.3" y="33.2" width="5.4" height="6.6" rx="2.7" fill="#ffd700"/>
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 -13.5;0 -13.5;0 0" keyTimes="0;0.42;0.58;1" dur="2.6s" calcMode="spline" keySplines="0.35 0 0.25 1;0 0 1 1;0.45 0 0.25 1" repeatCount="indefinite"/>
     </g>
 
     <g fill="#0d0d0d" opacity="0.92">
