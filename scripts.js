@@ -10,7 +10,7 @@
   const MODE_ALGO_MAP = {
     fastest: 'store',
     balanced: 'deflate',
-    maximum: 'zstd',
+    maximum: 'lzma',
   };
 
   const state = {
@@ -58,7 +58,6 @@
     fileTableBody: $('#fileTableBody'),
   };
 
-  const HAS_CS = typeof CompressionStream !== 'undefined';
   const EXT_COMPRESSED = new Set(['zip', 'rar', '7z', 'gz', 'bz2', 'xz', 'zst', 'lz', 'lzma', 'br', 'lz4', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'heic', 'mp3', 'aac', 'ogg', 'opus', 'flac', 'm4a', 'mp4', 'mkv', 'avi', 'webm', 'mov', 'wmv', 'flv', 'woff', 'woff2', 'jar', 'apk', 'dmg', 'iso']);
   const EXT_TEXT = new Set(['txt', 'html', 'htm', 'css', 'js', 'mjs', 'cjs', 'ts', 'tsx', 'jsx', 'json', 'xml', 'svg', 'csv', 'tsv', 'md', 'yml', 'yaml', 'toml', 'ini', 'py', 'java', 'c', 'cpp', 'h', 'hpp', 'cs', 'rb', 'php', 'go', 'rs', 'swift', 'kt', 'kts', 'sh', 'bash', 'zsh', 'bat', 'ps1', 'psm1', 'sql', 'graphql', 'proto', 'log', 'cfg', 'conf', 'env']);
   const EXT_SEMI = new Set(['pdf', 'docx', 'xlsx', 'pptx', 'odt', 'ods', 'epub']);
@@ -142,41 +141,6 @@
     return ((date.getFullYear() - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate();
   }
 
-  async function streamCompress(format, data, onProgress) {
-    if (!HAS_CS) throw new Error(format + ' compression is not supported in this browser.');
-    const stream = new CompressionStream(format);
-    const writer = stream.writable.getWriter();
-    const reader = stream.readable.getReader();
-    const chunks = [];
-    const drain = (async () => {
-      for (;;) {
-        const part = await reader.read();
-        if (part.done) break;
-        chunks.push(part.value);
-      }
-    })();
-    const chunkSize = 65536;
-    for (let offset = 0; offset < data.length; offset += chunkSize) {
-      const end = Math.min(offset + chunkSize, data.length);
-      await writer.write(data.subarray(offset, end));
-      if (onProgress) onProgress((end / data.length) * 100);
-    }
-    await writer.close();
-    await drain;
-    return concatChunks(chunks);
-  }
-
-  function concatChunks(chunks) {
-    const size = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
-    const out = new Uint8Array(size);
-    let offset = 0;
-    for (const chunk of chunks) {
-      out.set(chunk, offset);
-      offset += chunk.length;
-    }
-    return out;
-  }
-
   function normalizeBytes(value) {
     if (value instanceof Uint8Array) return value;
     if (value instanceof ArrayBuffer) return new Uint8Array(value);
@@ -197,61 +161,6 @@
     buffer[offset + 1] = normalized >> 8;
     buffer[offset + 2] = normalized >> 16;
     buffer[offset + 3] = normalized >> 24;
-  }
-
-  function tarWriteText(buffer, offset, length, text) {
-    const bytes = new TextEncoder().encode(text);
-    buffer.set(bytes.subarray(0, Math.min(length, bytes.length)), offset);
-  }
-
-  function tarWriteOctal(buffer, offset, length, value) {
-    tarWriteText(buffer, offset, length, Math.max(0, value).toString(8).padStart(length - 2, '0') + '\0 ');
-  }
-
-  function splitTarPath(path) {
-    const clean = path.replace(/^\/+/, '');
-    if (clean.length <= 100) return { name: clean, prefix: '' };
-    for (let split = clean.lastIndexOf('/'); split > 0; split = clean.lastIndexOf('/', split - 1)) {
-      const prefix = clean.slice(0, split);
-      const name = clean.slice(split + 1);
-      if (prefix.length <= 155 && name.length <= 100) return { name, prefix };
-    }
-    return { name: clean.slice(-100), prefix: clean.slice(0, 155) };
-  }
-
-  function tarChecksum(header) {
-    let sum = 0;
-    for (let i = 0; i < header.length; i++) sum += header[i];
-    return sum;
-  }
-
-  function buildTar(entries) {
-    const blocks = [];
-    const mtime = Math.floor(Date.now() / 1000);
-    for (const entry of entries) {
-      const header = new Uint8Array(512);
-      const parts = splitTarPath(entry.name);
-      tarWriteText(header, 0, 100, parts.name);
-      tarWriteOctal(header, 100, 8, 420);
-      tarWriteOctal(header, 108, 8, 0);
-      tarWriteOctal(header, 116, 8, 0);
-      tarWriteOctal(header, 124, 12, entry.rawData.length);
-      tarWriteOctal(header, 136, 12, mtime);
-      for (let i = 148; i < 156; i++) header[i] = 32;
-      header[156] = 48;
-      tarWriteText(header, 257, 6, 'ustar');
-      header[263] = 48;
-      header[264] = 48;
-      tarWriteText(header, 265, 32, 'FilePress');
-      tarWriteText(header, 297, 32, 'FilePress');
-      tarWriteText(header, 345, 155, parts.prefix);
-      tarWriteOctal(header, 148, 8, tarChecksum(header));
-      blocks.push(header, entry.rawData);
-      const padding = entry.rawData.length % 512;
-      if (padding) blocks.push(new Uint8Array(512 - padding));
-    }
-    blocks.push(new Uint8Array(1024));
-    return concatChunks(blocks);
   }
 
   function buildZip(entries) {
@@ -320,33 +229,6 @@
     return new Blob([buffer], { type: 'application/zip' });
   }
 
-  function lzwCompress(data) {
-    if (!data.length) return new Uint8Array(0);
-    const dict = new Map();
-    for (let i = 0; i < 256; i++) dict.set(String.fromCharCode(i), i);
-    let nextCode = 256;
-    let phrase = String.fromCharCode(data[0]);
-    const codes = [];
-    for (let i = 1; i < data.length; i++) {
-      const current = String.fromCharCode(data[i]);
-      const combo = phrase + current;
-      if (dict.has(combo)) {
-        phrase = combo;
-      } else {
-        codes.push(dict.get(phrase));
-        if (nextCode < 65535) dict.set(combo, nextCode++);
-        phrase = current;
-      }
-    }
-    codes.push(dict.get(phrase));
-    const out = new Uint8Array(codes.length * 2);
-    for (let i = 0; i < codes.length; i++) {
-      out[i * 2] = codes[i] & 0xFF;
-      out[i * 2 + 1] = codes[i] >> 8;
-    }
-    return out;
-  }
-
   function modeText() {
     if (state.mode === 'fastest') return 0.95;
     if (state.mode === 'maximum') return 0.9;
@@ -375,7 +257,8 @@
   function modeForAlgorithm(algorithm) {
     if (algorithm === 'store') return 'fastest';
     if (algorithm === 'deflate') return 'balanced';
-    return 'maximum';
+    if (algorithm === 'lzma') return 'maximum';
+    return 'custom';
   }
 
   function syncPresetButtons() {
@@ -490,12 +373,28 @@
       if (entry.kind === 'file') {
         const file = await entry.getFile();
         file.__relativePath = relativePath;
+        file.__fileHandle = entry;
         files.push(file);
       } else if (entry.kind === 'directory') {
         files.push(...await collectDirectoryFiles(entry, relativePath));
       }
     }
     return files;
+  }
+
+  async function readFileData(file) {
+    try {
+      return { file, rawData: new Uint8Array(await file.arrayBuffer()) };
+    } catch (error) {
+      const canRefresh = error && error.name === 'NotReadableError' && file.__fileHandle && typeof file.__fileHandle.getFile === 'function';
+      if (!canRefresh) {
+        throw new Error((file.name || 'A selected file') + ' could not be read. Close any app locking it, then pick it again.');
+      }
+      const refreshedFile = await file.__fileHandle.getFile();
+      refreshedFile.__relativePath = file.__relativePath || file.webkitRelativePath || file.name;
+      refreshedFile.__fileHandle = file.__fileHandle;
+      return { file: refreshedFile, rawData: new Uint8Array(await refreshedFile.arrayBuffer()) };
+    }
   }
 
   function configureFolderInput() {
@@ -534,11 +433,14 @@
     const items = [];
     const total = state.files.length;
     for (let i = 0; i < total; i++) {
-      const file = state.files[i].file;
+      const originalFile = state.files[i].file;
+      const displayName = getRelativeName(originalFile);
+      setProgress((i / total) * 42, 'Reading ' + originalFile.name + '...', displayName + ' (' + (i + 1) + '/' + total + ')');
+      const fileData = await readFileData(originalFile);
+      const file = fileData.file;
       const name = getRelativeName(file);
-      setProgress((i / total) * 42, 'Reading ' + file.name + '...', name + ' (' + (i + 1) + '/' + total + ')');
-      const rawData = new Uint8Array(await file.arrayBuffer());
-      items.push({ file, name, rawData });
+      if (file !== originalFile) state.files[i].file = file;
+      items.push({ file, name, rawData: fileData.rawData });
       setProgress(((i + 1) / total) * 42, 'Reading ' + file.name + '...', name + ' (' + (i + 1) + '/' + total + ')');
     }
     return items;
@@ -557,9 +459,18 @@
           setProgress(base, 'Analyzing ' + entry.file.name + '...', entry.name);
           await sleep(80);
         }
-        const deflated = await streamCompress('deflate-raw', entry.rawData, (percent) => {
-          setProgress(base + (percent / 100) * (45 / entries.length), 'Compressing ' + entry.file.name + '...', entry.name);
+        setProgress(base + (0.35 * (45 / entries.length)), 'Compressing ' + entry.file.name + '...', entry.name);
+        const deflated = await Promise.resolve().then(() => {
+          if (!globalThis.pako || typeof globalThis.pako.deflateRaw !== 'function') {
+            throw new Error('The Deflate runtime did not load.');
+          }
+          return normalizeBytes(globalThis.pako.deflateRaw(entry.rawData, {
+            level: 6,
+            memLevel: 8,
+            strategy: 0,
+          }));
         }).catch(() => null);
+        setProgress(base + (45 / entries.length), 'Compressing ' + entry.file.name + '...', entry.name);
         if (deflated && deflated.length < entry.rawData.length) {
           compData = deflated;
           method = ALGO.deflate.zipMethod;
@@ -568,7 +479,9 @@
       } else if (state.algorithm === 'zstd') {
         setProgress(base, 'Compressing ' + entry.file.name + '...', entry.name);
         const zstd = await zstdModule();
-        const zstdData = normalizeBytes(new zstd.Streaming().compress(entry.rawData, zstdLevel()));
+        const zstdData = entry.rawData.length > 100
+          ? normalizeBytes(await zstd.ZstdSimple.compress(entry.rawData, zstdLevel()))
+          : null;
         if (zstdData && zstdData.length < entry.rawData.length) {
           compData = zstdData;
           method = ALGO.zstd.zipMethod;
@@ -608,14 +521,10 @@
 
   async function zstdModule() {
     if (!state.zstdReady) {
-      state.zstdReady = new Promise((resolve, reject) => {
-        try {
-          if (!globalThis.ZstdCodecBundle || !globalThis.ZstdCodecBundle.ZstdCodec) throw new Error('The Zstandard bundle did not load.');
-          globalThis.ZstdCodecBundle.ZstdCodec.run((zstd) => resolve(zstd));
-        } catch (error) {
-          reject(error);
-        }
-      });
+      if (!globalThis.zstdCodec || typeof globalThis.zstdCodec.ZstdInit !== 'function') {
+        throw new Error('The Zstandard runtime did not load.');
+      }
+      state.zstdReady = globalThis.zstdCodec.ZstdInit();
     }
     return state.zstdReady;
   }
@@ -626,51 +535,6 @@
 
   function zstdLevel() {
     return state.mode === 'fastest' ? 1 : state.mode === 'maximum' ? 10 : 3;
-  }
-
-  async function compressTar(tarBytes) {
-    if (state.algorithm === 'gzip') {
-      setProgress(58, 'Compressing with Gzip...', 'Streaming TAR payload');
-      return streamCompress('gzip', tarBytes, (percent) => setProgress(58 + (percent * 0.37), 'Compressing with Gzip...', 'Streaming TAR payload'));
-    }
-    if (state.algorithm === 'lz4') {
-      setProgress(60, 'Compressing with LZ4...', 'Encoding TAR payload');
-      if (!globalThis.LZ4Bundle || !globalThis.LZ4Bundle.compress) throw new Error('The LZ4 bundle did not load.');
-      return normalizeBytes(globalThis.LZ4Bundle.compress(tarBytes));
-    }
-    if (state.algorithm === 'lzw') {
-      setProgress(60, 'Compressing with LZW...', 'Encoding TAR payload');
-      return lzwCompress(tarBytes);
-    }
-    if (state.algorithm === 'lzma') {
-      setProgress(58, 'Compressing with LZMA...', 'Encoding TAR payload');
-      if (!globalThis.LZMA || !globalThis.LZMA.compress) throw new Error('The LZMA runtime did not load.');
-      return new Promise((resolve, reject) => {
-        globalThis.LZMA.compress(tarBytes, lzmaPreset(), (result, error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(normalizeBytes(result));
-          }
-        }, (progress) => {
-          const value = progress > 1 ? progress : progress * 100;
-          setProgress(58 + (value * 0.37), 'Compressing with LZMA...', 'Encoding TAR payload');
-        });
-      });
-    }
-    if (state.algorithm === 'zstd') {
-      setProgress(58, 'Compressing with Zstd...', 'Encoding TAR payload');
-      const zstd = await zstdModule();
-      return normalizeBytes(new zstd.Streaming().compress(tarBytes, zstdLevel()));
-    }
-    throw new Error('Unsupported TAR algorithm.');
-  }
-
-  async function buildTarBlob(entries) {
-    setProgress(48, 'Building TAR payload...', 'Packing file structure');
-    const tarBytes = buildTar(entries);
-    setProgress(56, 'TAR payload ready', 'Applying selected algorithm');
-    return new Blob([await compressTar(tarBytes)], { type: 'application/octet-stream' });
   }
 
   async function compressAll() {
