@@ -32,12 +32,14 @@
 
   <rect x="2" y="2" width="60" height="60" rx="18" fill="url(#bg)"/>
   <rect x="2.5" y="2.5" width="59" height="59" rx="17.5" fill="none" stroke="url(#frame)" stroke-opacity="0.34"/>
-  <path d="M18 10h28l4 6v34c0 2.8-2.2 5-5 5H19c-2.8 0-5-2.2-5-5V16z" fill="url(#shell)" opacity="0.18">
+  <path d="M24 10h3.2c0.4-1.8 1.9-3 3.8-3h2c1.9 0 3.4 1.2 3.8 3H40c4.4 0 8 3.6 8 8v34c0 2.8-2.2 5-5 5H21c-2.8 0-5-2.2-5-5V18c0-4.4 3.6-8 8-8z" fill="url(#shell)" opacity="0.18">
     <animate attributeName="opacity" values="0.12;0.2;0.2;0.12" keyTimes="0;0.42;0.58;1" dur="2.6s" calcMode="spline" keySplines="0.35 0 0.25 1;0 0 1 1;0.45 0 0.25 1" repeatCount="indefinite"/>
   </path>
 
   <g filter="url(#glow)">
-    <path d="M20 11h24l3 5v33c0 2.2-1.8 4-4 4H21c-2.2 0-4-1.8-4-4V16z" fill="url(#shell)" stroke="#ffffff" stroke-opacity="0.08"/>
+    <rect x="26.4" y="9" width="11.2" height="4.8" rx="2.4" fill="#6e3fc4" opacity="0.95"/>
+    <rect x="29" y="10.2" width="6" height="2.4" rx="1.2" fill="#0d0d0d" opacity="0.5"/>
+    <path d="M22 12h20c2.8 0 5 2.2 5 5v31c0 2.8-2.2 5-5 5H22c-2.8 0-5-2.2-5-5V17c0-2.8 2.2-5 5-5z" fill="url(#shell)" stroke="#ffffff" stroke-opacity="0.08"/>
 
     <g>
       <g>
