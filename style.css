@@ -318,38 +318,46 @@ button {
 
 .mode-switch {
   display: inline-flex;
-  gap: 0.35rem;
-  padding: 0.2rem;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  gap: 0.3rem;
+  padding: 0.38rem;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015)),
+    rgba(10, 10, 10, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -10px 24px rgba(103, 57, 183, 0.08);
 }
 
 .mode-pill {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 0.58rem 0.9rem;
+  min-width: 6.8rem;
+  border: none;
+  border-radius: 999px;
+  padding: 0.68rem 1rem;
   background: transparent;
   color: var(--text-secondary);
-  font-size: 0.74rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  text-align: center;
 }
 
 .mode-pill:hover,
 .mode-pill:focus-visible {
   color: var(--text);
-  border-color: rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.04);
   outline: none;
 }
 
 .mode-pill.active {
-  color: var(--text);
+  color: #0d0d0d;
   border-color: transparent;
-  background: linear-gradient(135deg, var(--accent-purple-light), var(--accent-purple-dark));
-  box-shadow: var(--shadow-purple);
+  background: linear-gradient(135deg, var(--accent-yellow), var(--accent-yellow-dark));
+  box-shadow:
+    0 0 0 1px rgba(255, 215, 0, 0.2),
+    0 10px 26px rgba(255, 215, 0, 0.22);
 }
 
 .select-wrap {
