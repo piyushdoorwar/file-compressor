@@ -18,7 +18,6 @@
         <h1>FilePress</h1>
       </div>
       <div class="header-actions">
-        <div class="security-pill">100% local. Nothing leaves your browser.</div>
         <button class="info-btn" id="infoBtn" type="button" aria-label="Open local processing info" title="Local processing info">
           <svg class="ui-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <circle cx="12" cy="12" r="9"></circle>
@@ -72,11 +71,13 @@
       </div>
 
       <div class="toolbar-group">
-        <label class="toolbar-label" for="algorithmSelect">Format</label>
+        <label class="toolbar-label" for="algorithmSelect">Algo</label>
         <div class="select-wrap">
           <select id="algorithmSelect" class="custom-select">
-            <option value="deflate">Deflate</option>
             <option value="store">Store</option>
+            <option value="deflate" selected>Deflate</option>
+            <option value="zstd">Zstd (ZIP Exp)</option>
+            <option value="lzma">LZMA (ZIP Exp)</option>
           </select>
         </div>
       </div>
@@ -129,8 +130,8 @@
         </section>
 
         <section class="action-card">
-          <p class="action-title">Generate a ZIP archive</p>
-          <p class="action-copy">The selected preset controls the speed and compression ratio tradeoff.</p>
+          <p class="action-title">Generate a compressed ZIP archive</p>
+          <p class="action-copy">Output always stays in ZIP format. Advanced methods may need tools like 7-Zip for extraction.</p>
           <button class="generate-btn" id="generateBtn" type="button" disabled>
             <svg class="ui-icon button-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M4 8.5h16"></path>
@@ -139,7 +140,7 @@
               <path d="M12 11v5"></path>
               <path d="M10 14h4"></path>
             </svg>
-            <span>Generate Archive</span>
+            <span>Generate ZIP</span>
           </button>
         </section>
       </section>
@@ -187,9 +188,9 @@
                   <path d="M8 11l4 4 4-4"></path>
                   <path d="M4 19h16"></path>
                 </svg>
-                <span>Download ZIP Package</span>
+                <span>Download ZIP</span>
               </button>
-              <p class="done-note">The archive is ready for download.</p>
+              <p class="done-note">The ZIP archive is ready for download.</p>
             </div>
           </div>
         </section>
@@ -247,14 +248,16 @@
             </svg>
           </div>
           <div class="modal-copy">
-            <p class="modal-lead">100% Local - nothing leaves your browser.</p>
-            <p>Files are read, compressed, and packaged entirely on your device. No uploads, no remote storage, and no server-side processing are involved in the archive flow.</p>
+            <p class="modal-lead">100% local. Nothing leaves your browser.</p>
+            <p>Compression and ZIP packaging run in the browser only. No uploads, no remote storage, and no server-side processing are involved.</p>
           </div>
         </div>
       </div>
     </div>
   </div>
 
+  <script src="algo/zstd-codec-bundle.js"></script>
+  <script src="algo/lzma_worker-min.js"></script>
   <script src="scripts.js"></script>
 </body>
 </html>
