@@ -10,7 +10,7 @@
   const MODE_ALGO_MAP = {
     fastest: 'store',
     balanced: 'deflate',
-    maximum: 'lzma',
+    maximum: 'zstd',
   };
 
   const state = {
@@ -51,7 +51,11 @@
     doneCompressed: $('#doneCompressed'),
     doneSaved: $('#doneSaved'),
     downloadBtn: $('#downloadBtn'),
-    algorithmSelect: $('#algorithmSelect'),
+    algorithmDropdown: $('#algorithmDropdown'),
+    algorithmTrigger: $('#algorithmTrigger'),
+    algorithmValue: $('#algorithmValue'),
+    algorithmMenu: $('#algorithmMenu'),
+    algorithmOptions: $$('#algorithmMenu .algo-option'),
     presetBtns: $$('.preset-btn'),
     statusBadge: $('#statusBadge'),
     fileCounter: $('#fileCounter'),
@@ -257,12 +261,50 @@
   function modeForAlgorithm(algorithm) {
     if (algorithm === 'store') return 'fastest';
     if (algorithm === 'deflate') return 'balanced';
-    if (algorithm === 'lzma') return 'maximum';
+    if (algorithm === 'zstd') return 'maximum';
     return 'custom';
   }
 
   function syncPresetButtons() {
     el.presetBtns.forEach((button) => button.classList.toggle('active', button.dataset.mode === state.mode));
+  }
+
+  function syncAlgorithmDropdown() {
+    let label = 'Deflate';
+    el.algorithmOptions.forEach((option) => {
+      const active = option.dataset.value === state.algorithm;
+      option.classList.toggle('active', active);
+      option.setAttribute('aria-selected', active ? 'true' : 'false');
+      if (active) label = option.textContent;
+    });
+    el.algorithmValue.textContent = label;
+  }
+
+  function openAlgorithmMenu() {
+    el.algorithmDropdown.classList.add('open');
+    el.algorithmMenu.classList.remove('hidden');
+    el.algorithmTrigger.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeAlgorithmMenu() {
+    el.algorithmDropdown.classList.remove('open');
+    el.algorithmMenu.classList.add('hidden');
+    el.algorithmTrigger.setAttribute('aria-expanded', 'false');
+  }
+
+  function toggleAlgorithmMenu() {
+    if (el.algorithmMenu.classList.contains('hidden')) {
+      openAlgorithmMenu();
+    } else {
+      closeAlgorithmMenu();
+    }
+  }
+
+  function focusAlgorithmOption(index) {
+    const options = Array.from(el.algorithmOptions);
+    if (!options.length) return;
+    const nextIndex = Math.max(0, Math.min(options.length - 1, index));
+    options[nextIndex].focus();
   }
 
   function setAlgorithm(algorithm) {
@@ -271,7 +313,7 @@
     const changed = state.algorithm !== nextAlgorithm || state.mode !== nextMode;
     state.algorithm = nextAlgorithm;
     state.mode = nextMode;
-    el.algorithmSelect.value = state.algorithm;
+    syncAlgorithmDropdown();
     syncPresetButtons();
     if (changed) invalidateArchiveResult();
     refreshStats();
@@ -423,7 +465,7 @@
     const changed = state.mode !== nextMode || state.algorithm !== nextAlgorithm;
     state.mode = nextMode;
     state.algorithm = nextAlgorithm;
-    el.algorithmSelect.value = state.algorithm;
+    syncAlgorithmDropdown();
     syncPresetButtons();
     if (changed) invalidateArchiveResult();
     refreshStats();
@@ -628,12 +670,57 @@
       el.dropZone.classList.remove('drag-over');
       if (event.dataTransfer.files && event.dataTransfer.files.length) addFiles(event.dataTransfer.files);
     });
-    el.algorithmSelect.addEventListener('change', () => {
-      setAlgorithm(el.algorithmSelect.value);
+    el.algorithmTrigger.addEventListener('click', (event) => {
+      event.stopPropagation();
+      toggleAlgorithmMenu();
+    });
+    el.algorithmTrigger.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        if (el.algorithmMenu.classList.contains('hidden')) openAlgorithmMenu();
+        focusAlgorithmOption(Array.from(el.algorithmOptions).findIndex((option) => option.dataset.value === state.algorithm));
+      } else if (event.key === 'Escape') {
+        closeAlgorithmMenu();
+      }
+    });
+    el.algorithmOptions.forEach((option, index) => {
+      option.addEventListener('click', () => {
+        setAlgorithm(option.dataset.value);
+        closeAlgorithmMenu();
+        el.algorithmTrigger.focus();
+      });
+      option.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowDown') {
+          event.preventDefault();
+          focusAlgorithmOption(index + 1);
+        } else if (event.key === 'ArrowUp') {
+          event.preventDefault();
+          focusAlgorithmOption(index - 1);
+        } else if (event.key === 'Home') {
+          event.preventDefault();
+          focusAlgorithmOption(0);
+        } else if (event.key === 'End') {
+          event.preventDefault();
+          focusAlgorithmOption(el.algorithmOptions.length - 1);
+        } else if (event.key === 'Escape') {
+          event.preventDefault();
+          closeAlgorithmMenu();
+          el.algorithmTrigger.focus();
+        } else if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          option.click();
+        }
+      });
     });
     el.presetBtns.forEach((button) => button.addEventListener('click', () => setPreset(button.dataset.mode)));
+    document.addEventListener('click', (event) => {
+      if (!el.algorithmDropdown.contains(event.target)) closeAlgorithmMenu();
+    });
     document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && el.infoModal.classList.contains('active')) closeInfoModal();
+      if (event.key === 'Escape') {
+        closeAlgorithmMenu();
+        if (el.infoModal.classList.contains('active')) closeInfoModal();
+      }
     });
     el.generateBtn.addEventListener('click', compressAll);
     el.downloadBtn.addEventListener('click', downloadArchive);
